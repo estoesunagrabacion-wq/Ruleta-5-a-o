@@ -23,8 +23,11 @@
   #titleplate{border-radius:14px;padding:11px 16px;margin-bottom:12px;text-align:center;}
   #maintitle{font-size:clamp(18px,5vw,24px);font-weight:900;letter-spacing:1px;line-height:1.1;}
   #subtitle{font-size:clamp(11px,3vw,14px);font-weight:600;margin-top:3px;}
-  #coursebadge{text-align:center;margin-bottom:12px;}
+  #coursebadge{text-align:center;margin-bottom:8px;}
   #coursebadge span{display:inline-block;border-radius:999px;padding:5px 18px;font-size:clamp(13px,3.5vw,17px);font-weight:800;letter-spacing:1.5px;}
+  #counter{display:none;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  #counterlbl{font-size:12px;font-weight:700;letter-spacing:.5px;}
+  #newroundbtn{font-size:10px;font-weight:700;border-radius:999px;padding:3px 10px;background:transparent;cursor:pointer;touch-action:manipulation;transition:all .15s;}
   #screen{border-radius:16px;border:2px solid transparent;overflow:hidden;margin-bottom:14px;display:flex;justify-content:center;position:relative;}
   #screen::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(180deg,rgba(255,255,255,0.06),transparent);pointer-events:none;border-radius:14px 14px 0 0;z-index:2;}
   #screen::after{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.07) 3px,rgba(0,0,0,0.07) 4px);pointer-events:none;z-index:3;}
@@ -40,18 +43,24 @@
   .themebtnrow{display:flex;gap:6px;justify-content:center;}
   .themebtn{padding:6px 16px;border-radius:999px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;border:2px solid transparent;}
   #settings{background:rgba(0,0,0,.5);border-radius:14px;padding:14px;margin-top:10px;display:none;border:1px solid transparent;}
-  .togglerow{display:flex;gap:8px;justify-content:center;margin-bottom:10px;}
-  .togglebtn{color:#fff;border:none;border-radius:999px;padding:7px 14px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;cursor:pointer;}
+  .sep{height:1px;background:rgba(255,255,255,.08);margin:10px 0;}
+  .togglerow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .togglebtn{color:#fff;border:1px solid #555;border-radius:999px;padding:7px 14px;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;cursor:pointer;background:#2a2a2a;}
+  .togglebtn.on{background:#14532d;border-color:#22c55e;}
   .slidrow{display:flex;align-items:center;gap:8px;font-size:11px;color:#aaa;margin-bottom:6px;}
   .slidrow span.lbl{width:44px;}
   .slidrow input{flex:1;height:20px;}
   .slidrow span.val{width:28px;text-align:right;}
+  #absenttoggle{font-size:11px;font-weight:700;background:transparent;color:#aaa;border:none;padding:4px 0;cursor:pointer;margin-top:4px;display:block;width:100%;text-align:center;}
+  #absentpanel{display:none;margin-top:8px;}
+  #absentlist{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+  .achip{font-size:10px;font-weight:600;border-radius:6px;padding:3px 9px;border:1px solid transparent;cursor:pointer;transition:all .15s;user-select:none;}
+  .achip.absent{opacity:.4;text-decoration:line-through;}
   #history{border-top:1px solid transparent;padding-top:10px;margin-top:4px;display:none;}
   #history .hlabel{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
   #histlist{display:flex;flex-wrap:wrap;gap:4px;}
   .htag{font-size:10px;font-weight:600;border-radius:6px;padding:2px 8px;border:1px solid transparent;}
   @keyframes pop{0%{transform:scale(.75);opacity:0}100%{transform:scale(1);opacity:1}}
-  @keyframes letterPop{0%{transform:scale(1.4) translateY(-2px)}100%{transform:scale(1)}}
   input[type=range]{height:20px;}
 </style>
 </head>
@@ -70,13 +79,26 @@
     </button>
     <div class="screw" id="s2"></div>
   </div>
+
   <div id="titleplate">
     <div id="maintitle"></div>
     <div id="subtitle"></div>
   </div>
+
   <div id="coursebadge"><span>3.º AÑO · 2026</span></div>
+
+  <div id="counter">
+    <span id="counterlbl"></span>
+    <button id="newroundbtn" onclick="newRound()">↺ nueva ronda</button>
+  </div>
+
   <div id="screen"><canvas id="reel"></canvas></div>
-  <div id="winner"><div class="wlabel">✦ seleccionado/a ✦</div><div class="wname" id="winnername"></div></div>
+
+  <div id="winner">
+    <div class="wlabel">✦ seleccionado/a ✦</div>
+    <div class="wname" id="winnername"></div>
+  </div>
+
   <div class="btnrow">
     <button id="spinbtn" onclick="spin()">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
@@ -89,13 +111,15 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
   </div>
+
   <div class="themebtnrow" style="margin-bottom:0;">
     <button class="themebtn" id="tbtn-dark"  onclick="setTheme('dark')">😈</button>
     <button class="themebtn" id="tbtn-light" onclick="setTheme('light')">😇</button>
     <button class="themebtn" id="tbtn-space" onclick="setTheme('space')">🚀</button>
   </div>
+
   <div id="settings">
-    <div class="togglerow">
+    <div class="togglerow" style="margin-bottom:10px;">
       <button class="togglebtn" id="sfxbtn" onclick="toggleSfx()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         <span id="sfxlbl">Efectos ON</span>
@@ -108,20 +132,36 @@
     <div class="slidrow" id="sfxrow">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
       <span class="lbl">Efectos</span>
-      <input type="range" min="0" max="1" step="0.05" value="1.0" oninput="sfxVol=+this.value;document.getElementById('sfxval').textContent=Math.round(sfxVol*100)+'%'"/>
+      <input id="sfxslider" type="range" min="0" max="1" step="0.05" value="1.0" oninput="sfxVol=+this.value;document.getElementById('sfxval').textContent=Math.round(sfxVol*100)+'%';saveState()"/>
       <span class="val" id="sfxval">100%</span>
     </div>
     <div class="slidrow" id="musicrow">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
       <span class="lbl">Música</span>
-      <input type="range" min="0" max="1" step="0.05" value="1.0" oninput="musicVol=+this.value;document.getElementById('musicval').textContent=Math.round(musicVol*100)+'%';restartMusic()"/>
+      <input id="musicslider" type="range" min="0" max="1" step="0.05" value="1.0" oninput="musicVol=+this.value;document.getElementById('musicval').textContent=Math.round(musicVol*100)+'%';updateMusicGain();saveState()"/>
       <span class="val" id="musicval">100%</span>
     </div>
+
+    <div class="sep"></div>
+
+    <div class="togglerow">
+      <button class="togglebtn" id="norepeatbtn" onclick="toggleNoRepeat()">
+        🔄 Sin repetición OFF
+      </button>
+    </div>
+
+    <button id="absenttoggle" onclick="toggleAbsentPanel()">👥 Asistencia ▾</button>
+    <div id="absentpanel">
+      <div style="font-size:9px;color:#777;text-align:center;margin-bottom:2px;">Tocá un nombre para marcarlo ausente</div>
+      <div id="absentlist"></div>
+    </div>
   </div>
+
   <div id="history">
     <div class="hlabel" id="hlabel"></div>
     <div id="histlist"></div>
   </div>
+
   <div class="screws" style="margin-top:14px;">
     <div class="screw" id="s3"></div><div class="screw" id="s4"></div>
   </div>
@@ -164,20 +204,80 @@ const THEMES = {
 };
 
 const REEL_W=340, REEL_H=280, SLOT_COUNT=7, SLOT_H=REEL_H/SLOT_COUNT;
-let theme="dark", idx=0, spinning=false, winner=null;
-let soundOn=true, musicOn=true, sfxVol=1.0, musicVol=1.0;
-let historyArr=[], settingsOpen=false, timerRef=null, musicInterval=null, audioCtx=null;
+const N=NAMES.length;
+const LS_KEY="ruleta3ero_v2";
 
-function getAudioCtx(){
-  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==="suspended") audioCtx.resume().catch(()=>{});
+// --- State ---
+let theme="dark";
+let reelPos=0;        // continuous float; floor(reelPos)%N = center slot index
+let spinning=false;
+let winner=null;
+let soundOn=true, musicOn=true, sfxVol=1.0, musicVol=1.0;
+let noRepeat=false;
+let usedSet=new Set();    // picked in current round (no-repeat mode)
+let absentSet=new Set();  // manually excluded
+let historyArr=[];
+let settingsOpen=false;
+let absentOpen=false;
+
+let rafId=null;
+let spinFrom=0, spinTo=0, spinStart=0, spinDuration=0;
+let lastTickBase=-1;
+let audioCtx=null, musicGain=null, musicInterval=null;
+let reelDpr=0;
+
+// --- Persistence ---
+function saveState(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({
+      theme,soundOn,musicOn,sfxVol,musicVol,noRepeat,
+      usedSet:[...usedSet],absentSet:[...absentSet],historyArr
+    }));
+  }catch(e){}
+}
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return;
+    const s=JSON.parse(raw);
+    if(s.theme&&THEMES[s.theme])theme=s.theme;
+    if(typeof s.soundOn==="boolean")soundOn=s.soundOn;
+    if(typeof s.musicOn==="boolean")musicOn=s.musicOn;
+    if(typeof s.sfxVol==="number")sfxVol=s.sfxVol;
+    if(typeof s.musicVol==="number")musicVol=s.musicVol;
+    if(typeof s.noRepeat==="boolean")noRepeat=s.noRepeat;
+    if(Array.isArray(s.usedSet))usedSet=new Set(s.usedSet.filter(i=>i>=0&&i<N));
+    if(Array.isArray(s.absentSet))absentSet=new Set(s.absentSet.filter(i=>i>=0&&i<N));
+    if(Array.isArray(s.historyArr))historyArr=s.historyArr;
+  }catch(e){}
+}
+
+// --- Audio ---
+function getCtx(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
   return audioCtx;
+}
+
+function getMusicGain(){
+  const c=getCtx();
+  if(!musicGain||musicGain.context!==c){
+    musicGain=c.createGain();
+    musicGain.gain.value=musicVol*0.07;
+    musicGain.connect(c.destination);
+  }
+  return musicGain;
+}
+
+function updateMusicGain(){
+  if(musicGain)musicGain.gain.setTargetAtTime(musicVol*0.07,getCtx().currentTime,0.05);
 }
 
 function playNote(freq,dur,type,vol){
   if(!soundOn)return;
   try{
-    const c=getAudioCtx();
+    const c=getCtx();
     const o=c.createOscillator(),g=c.createGain();
     o.type=type||"sine";o.frequency.value=freq;
     g.gain.setValueAtTime(vol||0.2,c.currentTime);
@@ -187,16 +287,14 @@ function playNote(freq,dur,type,vol){
 }
 
 function playFanfare(vol){
-  if(!soundOn)return;
-  vol=vol||1.0;
+  if(!soundOn)return;vol=vol||1.0;
   const notes=[[220,0.00,0.20],[293,0.22,0.20],[220,0.44,0.24],[164,0.70,0.32],[220,1.05,0.65],[329,1.10,0.60],[440,1.18,0.90]];
   notes.forEach(([freq,when,dur])=>{
-    const c=getAudioCtx();
+    const c=getCtx();
     [[freq,"sawtooth",vol*0.45],[freq*2.01,"square",vol*0.12],[freq*0.5,"sine",vol*0.18]].forEach(([f,type,v])=>{
       try{
         const o=c.createOscillator(),g=c.createGain(),flt=c.createBiquadFilter();
-        flt.type="lowpass";flt.frequency.value=2400;
-        o.type=type;o.frequency.value=f;
+        flt.type="lowpass";flt.frequency.value=2400;o.type=type;o.frequency.value=f;
         g.gain.setValueAtTime(0,c.currentTime+when);
         g.gain.linearRampToValueAtTime(v,c.currentTime+when+0.025);
         g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+when+dur);
@@ -211,77 +309,111 @@ function stopMusic(){if(musicInterval){clearInterval(musicInterval);musicInterva
 
 function restartMusic(){
   stopMusic();if(!musicOn)return;
+  const mg=getMusicGain();mg.gain.value=0;
+  const c=getCtx();
+  mg.gain.setTargetAtTime(musicVol*0.07,c.currentTime,0.3);
   const t=THEMES[theme];let i=0;
   musicInterval=setInterval(()=>{
     try{
-      const c=getAudioCtx();const freq=t.notes[i%t.notes.length];const dur=0.5;const vol=musicVol*0.07;
-      [[1,"sine",vol*0.6],[1.005,"triangle",vol*0.25],[0.5,"sine",vol*0.15]].forEach(([ratio,type,v])=>{
+      const freq=t.notes[i%t.notes.length],dur=0.5;
+      const cutoff=theme==="dark"?800:theme==="space"?2200:3500;
+      [[1,"sine",0.6],[1.005,"triangle",0.25],[0.5,"sine",0.15]].forEach(([ratio,type,v])=>{
         const o=c.createOscillator(),g=c.createGain(),flt=c.createBiquadFilter();
-        flt.type="lowpass";
-        flt.frequency.value=theme==="dark"?800:theme==="space"?2200:3500;
-        o.type=type;o.frequency.value=freq*ratio;
+        flt.type="lowpass";flt.frequency.value=cutoff;o.type=type;o.frequency.value=freq*ratio;
         g.gain.setValueAtTime(0,c.currentTime);
         g.gain.linearRampToValueAtTime(v,c.currentTime+0.04);
         g.gain.setValueAtTime(v,c.currentTime+dur*0.55);
         g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
-        o.connect(flt);flt.connect(g);g.connect(c.destination);
+        o.connect(flt);flt.connect(g);g.connect(mg);
         o.start();o.stop(c.currentTime+dur+0.05);
       });
       i++;
     }catch(e){}
-  }, t.tempo);
+  },t.tempo);
 }
 
+function fadeAndRestartMusic(){
+  if(musicGain){
+    const c=getCtx();
+    musicGain.gain.setTargetAtTime(0,c.currentTime,0.1);
+    setTimeout(()=>{stopMusic();musicGain=null;restartMusic();},350);
+  }else{
+    restartMusic();
+  }
+}
+
+// --- Pool ---
+function getPool(){
+  const pool=[];
+  for(let i=0;i<N;i++){
+    if(absentSet.has(i))continue;
+    if(noRepeat&&usedSet.has(i))continue;
+    pool.push(i);
+  }
+  return pool;
+}
+
+// --- Reel draw (continuous reelPos) ---
 function drawReel(){
   const cv=document.getElementById("reel");
-  const dpr=Math.min(window.devicePixelRatio||1, 3);
-  cv.width=Math.round(REEL_W*dpr);cv.height=Math.round(REEL_H*dpr);
-  cv.style.width=REEL_W+"px";cv.style.height=REEL_H+"px";
+  const dpr=Math.min(window.devicePixelRatio||1,3);
+  if(reelDpr!==dpr){
+    cv.width=Math.round(REEL_W*dpr);cv.height=Math.round(REEL_H*dpr);
+    cv.style.width=REEL_W+"px";cv.style.height=REEL_H+"px";
+    reelDpr=dpr;
+  }
   const ctx=cv.getContext("2d");
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const t=THEMES[theme];
   ctx.clearRect(0,0,REEL_W,REEL_H);
   const cx=REEL_W/2,cy=REEL_H/2,half=Math.floor(SLOT_COUNT/2);
+  const base=Math.floor(reelPos);
+  const offset=reelPos-base; // 0..1 fractional
 
   const sideGrad=ctx.createLinearGradient(0,0,REEL_W,0);
-  sideGrad.addColorStop(0,"rgba(0,0,0,0.4)");
-  sideGrad.addColorStop(0.12,"rgba(0,0,0,0)");
-  sideGrad.addColorStop(0.88,"rgba(0,0,0,0)");
-  sideGrad.addColorStop(1,"rgba(0,0,0,0.4)");
+  sideGrad.addColorStop(0,"rgba(0,0,0,0.4)");sideGrad.addColorStop(0.12,"rgba(0,0,0,0)");
+  sideGrad.addColorStop(0.88,"rgba(0,0,0,0)");sideGrad.addColorStop(1,"rgba(0,0,0,0.4)");
 
-  for(let i=-half;i<=half;i++){
-    const ni=((idx+i)%NAMES.length+NAMES.length)%NAMES.length;
-    const dist=Math.abs(i);
-    const theta=i/SLOT_COUNT*Math.PI*0.9;
+  for(let i=-half-1;i<=half+1;i++){
+    const ni=((base+i)%N+N)%N;
+    const slotPos=i-offset;  // visual position on cylinder
+    if(Math.abs(slotPos)>half+0.6)continue;
+    const theta=slotPos/SLOT_COUNT*Math.PI*0.9;
     const y=cy+Math.sin(theta)*(REEL_H*0.47);
     const cosT=Math.cos(theta);
-    const opacity=Math.max(0,cosT*(dist===0?1:0.7));
+    const dist=Math.abs(slotPos);
+    const opacity=Math.max(0,cosT*(dist<0.5?1:0.7));
     const slotH=SLOT_H*Math.abs(cosT);
     if(slotH<2)continue;
 
-    if(dist===0){
+    if(dist<0.5){
       const rb=ctx.createLinearGradient(0,y-slotH/2,0,y+slotH/2);
-      rb.addColorStop(0,t.screenBg2+"ee");
-      rb.addColorStop(0.5,t.screenBg1+"cc");
-      rb.addColorStop(1,t.screenBg2+"ee");
+      rb.addColorStop(0,t.screenBg2+"ee");rb.addColorStop(0.5,t.screenBg1+"cc");rb.addColorStop(1,t.screenBg2+"ee");
       ctx.fillStyle=rb;ctx.fillRect(0,y-slotH/2,REEL_W,slotH);
       ctx.fillStyle=t.rim+"22";ctx.fillRect(0,y-slotH/2,REEL_W,slotH);
     }
     ctx.strokeStyle=t.rim+"44";ctx.lineWidth=0.5;
     ctx.beginPath();ctx.moveTo(16,y+slotH/2);ctx.lineTo(REEL_W-16,y+slotH/2);ctx.stroke();
 
-    const fs=dist===0?Math.max(16,Math.min(22,REEL_W*0.062)):Math.max(10,14-dist*2);
-    ctx.font=(dist===0?"800":"500")+" "+fs+"px 'Segoe UI',system-ui,sans-serif";
+    const fs=dist<0.5?Math.max(16,Math.min(22,REEL_W*0.062)):Math.max(10,14-dist*2);
+    ctx.font=(dist<0.5?"800":"500")+" "+fs+"px 'Segoe UI',system-ui,sans-serif";
     ctx.textAlign="center";ctx.textBaseline="middle";
-    ctx.globalAlpha=opacity;
+    ctx.globalAlpha=Math.min(opacity,1);
 
-    if(dist===0){
+    // Mark used/absent names subtly
+    const isUsed=noRepeat&&usedSet.has(ni);
+    const isAbsent=absentSet.has(ni);
+    let nameColor=t.nameColor;
+    if(isAbsent)nameColor="#555555";
+    else if(isUsed)nameColor=t.nameColor+"66";
+
+    if(dist<0.5){
       ctx.shadowColor=t.rimGlow;ctx.shadowBlur=spinning?22:14;
       ctx.fillStyle=t.rimGlow+"88";ctx.fillText(NAMES[ni],cx,y);
-      ctx.shadowBlur=0;ctx.fillStyle=t.nameColor;ctx.fillText(NAMES[ni],cx,y);
+      ctx.shadowBlur=0;ctx.fillStyle=nameColor;ctx.fillText(NAMES[ni],cx,y);
     }else{
       ctx.shadowColor=t.rimGlow;ctx.shadowBlur=4;
-      ctx.fillStyle=t.nameColor+Math.round(opacity*160).toString(16).padStart(2,"0");
+      ctx.fillStyle=nameColor+(Math.round(opacity*160)).toString(16).padStart(2,"0");
       ctx.fillText(NAMES[ni],cx,y);ctx.shadowBlur=0;
     }
     ctx.globalAlpha=1;
@@ -292,7 +424,6 @@ function drawReel(){
   const tm=ctx.createLinearGradient(0,0,0,REEL_H*.28);
   tm.addColorStop(0,t.screenBg1+"ff");tm.addColorStop(1,t.screenBg1+"00");
   ctx.fillStyle=tm;ctx.fillRect(0,0,REEL_W,REEL_H*.28);
-
   const bm=ctx.createLinearGradient(0,REEL_H*.72,0,REEL_H);
   bm.addColorStop(0,t.screenBg1+"00");bm.addColorStop(1,t.screenBg1+"ff");
   ctx.fillStyle=bm;ctx.fillRect(0,REEL_H*.72,REEL_W,REEL_H*.28);
@@ -301,20 +432,187 @@ function drawReel(){
   ctx.shadowColor=t.rimGlow;ctx.shadowBlur=spinning?24:12;
   ctx.strokeStyle=t.rimGlow;ctx.lineWidth=2;
   ctx.strokeRect(12,winY,REEL_W-24,winH);ctx.shadowBlur=0;
-
   ctx.strokeStyle="rgba(255,255,255,0.2)";ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(12,winY);ctx.lineTo(REEL_W-12,winY);ctx.stroke();
 
   [[6,false],[REEL_W-6,true]].forEach(([ax,right])=>{
-    ctx.shadowColor=t.rimGlow;ctx.shadowBlur=10;
-    ctx.fillStyle=t.rimGlow;ctx.beginPath();
+    ctx.shadowColor=t.rimGlow;ctx.shadowBlur=10;ctx.fillStyle=t.rimGlow;ctx.beginPath();
     if(!right){ctx.moveTo(ax,cy-8);ctx.lineTo(ax+10,cy);ctx.lineTo(ax,cy+8);}
     else{ctx.moveTo(ax,cy-8);ctx.lineTo(ax-10,cy);ctx.lineTo(ax,cy+8);}
     ctx.closePath();ctx.fill();ctx.shadowBlur=0;
   });
 }
 
-// Letter-by-letter animated winner reveal
+// --- Smooth spin animation ---
+function easeOut(t){return 1-Math.pow(1-t,4);}
+
+function animateSpin(now){
+  const elapsed=now-spinStart;
+  const progress=Math.min(elapsed/spinDuration,1);
+  reelPos=spinFrom+(spinTo-spinFrom)*easeOut(progress);
+
+  // Tick sound each time we cross an integer slot boundary
+  const curBase=Math.floor(reelPos);
+  if(curBase!==lastTickBase){
+    if(soundOn){
+      const spd=progress;
+      playNote(160+spd*180,0.04,"sine",sfxVol*0.06);
+    }
+    lastTickBase=curBase;
+  }
+
+  drawReel();
+
+  if(progress<1){
+    rafId=requestAnimationFrame(animateSpin);
+  }else{
+    reelPos=spinTo;
+    drawReel();
+    onSpinEnd();
+  }
+}
+
+function onSpinEnd(){
+  spinning=false;
+  const finalNameIdx=Math.floor(spinTo)%N;
+  winner=NAMES[finalNameIdx];
+  if(noRepeat)usedSet.add(finalNameIdx);
+  document.getElementById("spinbtn").disabled=false;
+  document.getElementById("spinlbl").textContent="GIRAR";
+  const t=THEMES[theme];
+  const wEl=document.getElementById("winner");
+  wEl.style.display="block";
+  wEl.style.background=`linear-gradient(90deg,${t.btnBg1},${t.btnBg2}cc,${t.btnBg1})`;
+  wEl.style.border=`1px solid ${t.rim}99`;
+  wEl.style.boxShadow=`0 0 32px ${t.rimGlow}77`;
+  wEl.style.animation="none";
+  requestAnimationFrame(()=>{wEl.style.animation="pop .4s cubic-bezier(.34,1.56,.64,1)";});
+  revealText(winner);
+  historyArr.unshift(winner);if(historyArr.length>8)historyArr.pop();
+  updateHistory();
+  updateCounter();
+  playFanfare(sfxVol);
+  saveState();
+}
+
+// --- Spin ---
+function spin(){
+  if(spinning)return;
+  const pool=getPool();
+  if(pool.length===0){
+    // All done — flash the nueva ronda button
+    const btn=document.getElementById("newroundbtn");
+    btn.style.transform="scale(1.15)";
+    setTimeout(()=>{btn.style.transform="";},300);
+    return;
+  }
+  spinning=true;winner=null;
+  document.getElementById("winner").style.display="none";
+  document.getElementById("spinbtn").disabled=true;
+  document.getElementById("spinlbl").textContent="GIRANDO…";
+  if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
+  if(soundOn)playNote(65,0.4,"sawtooth",sfxVol*0.3);
+
+  const finalNameIdx=pool[Math.floor(Math.random()*pool.length)];
+  const totalSteps=48+Math.floor(Math.random()*18);
+  const baseNow=Math.floor(reelPos);
+  const extra=((finalNameIdx-(baseNow+totalSteps)%N)+N)%N;
+
+  spinFrom=reelPos;
+  spinTo=Math.floor(reelPos)+totalSteps+extra;
+  spinStart=performance.now();
+  spinDuration=3200+Math.random()*900;
+  lastTickBase=Math.floor(reelPos);
+
+  rafId=requestAnimationFrame(animateSpin);
+}
+
+function resetReel(){
+  if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+  spinning=false;winner=null;reelPos=0;
+  document.getElementById("winner").style.display="none";
+  document.getElementById("spinbtn").disabled=false;
+  document.getElementById("spinlbl").textContent="GIRAR";
+  drawReel();
+}
+
+function newRound(){
+  usedSet.clear();
+  updateCounter();
+  saveState();
+  const t=THEMES[theme];
+  const btn=document.getElementById("newroundbtn");
+  btn.style.background=t.rim+"33";
+  setTimeout(()=>{btn.style.background="transparent";},400);
+}
+
+// --- No-repeat ---
+function toggleNoRepeat(){
+  noRepeat=!noRepeat;
+  updateNoRepeatBtn();
+  updateCounter();
+  drawReel();
+  saveState();
+}
+
+function updateNoRepeatBtn(){
+  const btn=document.getElementById("norepeatbtn");
+  const t=THEMES[theme];
+  if(noRepeat){
+    btn.className="togglebtn on";
+    btn.textContent="🔄 Sin repetición ON";
+  }else{
+    btn.className="togglebtn";
+    btn.textContent="🔄 Sin repetición OFF";
+  }
+}
+
+function updateCounter(){
+  const el=document.getElementById("counter");
+  if(!noRepeat){el.style.display="none";return;}
+  el.style.display="flex";
+  const total=N-absentSet.size;
+  const available=total-usedSet.size;
+  const lbl=document.getElementById("counterlbl");
+  const t=THEMES[theme];
+  lbl.style.color=available===0?t.courseColor:t.rim;
+  lbl.textContent=available===0?"✓ Todos sorteados":`🔄 ${available} / ${total} pendientes`;
+  const nrb=document.getElementById("newroundbtn");
+  nrb.style.color=t.rim;
+  nrb.style.border=`1px solid ${t.rim}55`;
+}
+
+// --- Absent students ---
+function toggleAbsentPanel(){
+  absentOpen=!absentOpen;
+  document.getElementById("absentpanel").style.display=absentOpen?"block":"none";
+  document.getElementById("absenttoggle").textContent=absentOpen?"👥 Asistencia ▴":"👥 Asistencia ▾";
+}
+
+function buildAbsentList(){
+  const list=document.getElementById("absentlist");
+  list.innerHTML="";
+  const t=THEMES[theme];
+  NAMES.forEach((name,i)=>{
+    const chip=document.createElement("span");
+    chip.className="achip"+(absentSet.has(i)?" absent":"");
+    chip.textContent=name;
+    chip.style.color=t.nameColor;
+    chip.style.background=t.rim+"18";
+    chip.style.borderColor=t.rim+"33";
+    chip.onclick=()=>{
+      if(absentSet.has(i))absentSet.delete(i);
+      else absentSet.add(i);
+      chip.className="achip"+(absentSet.has(i)?" absent":"");
+      updateCounter();
+      drawReel();
+      saveState();
+    };
+    list.appendChild(chip);
+  });
+}
+
+// --- Winner text reveal ---
 function revealText(name){
   const el=document.getElementById("winnername");
   el.innerHTML="";
@@ -323,25 +621,35 @@ function revealText(name){
     const s=document.createElement("span");
     s.textContent=name[i];
     s.style.cssText="color:transparent;display:inline-block;transition:transform 0.12s cubic-bezier(.34,1.56,.64,1);";
-    el.appendChild(s);
-    spans.push(s);
+    el.appendChild(s);spans.push(s);
   }
-  const t=THEMES[theme];
-  let i=0;
+  const t=THEMES[theme];let i=0;
   const iv=setInterval(()=>{
     if(i>=spans.length){clearInterval(iv);return;}
     const s=spans[i];
     s.style.color="#fff";
     s.style.textShadow=`0 0 28px #fff,0 0 14px ${t.rimGlow},0 0 40px ${t.rimGlow}`;
     s.style.transform="scale(1.4) translateY(-2px)";
-    setTimeout(()=>{
-      s.style.transform="scale(1)";
-      s.style.textShadow=`0 0 12px ${t.rimGlow}`;
-    },130);
+    setTimeout(()=>{s.style.transform="scale(1)";s.style.textShadow=`0 0 12px ${t.rimGlow}`;},130);
     i++;
   },70);
 }
 
+// --- History ---
+function updateHistory(){
+  const hl=document.getElementById("histlist");hl.innerHTML="";
+  const t=THEMES[theme];
+  historyArr.forEach(h=>{
+    const s=document.createElement("span");s.className="htag";s.textContent=h;
+    s.style.color=t.nameColor;s.style.background=t.rim+"18";s.style.borderColor=t.rim+"33";
+    hl.appendChild(s);
+  });
+  document.getElementById("history").style.display=historyArr.length>0?"block":"none";
+  document.getElementById("hlabel").textContent="Últimos sorteados";
+  document.getElementById("hlabel").style.color=t.rim+"88";
+}
+
+// --- Theme ---
 function applyTheme(){
   const t=THEMES[theme];
   document.body.style.background=`radial-gradient(ellipse at 50% 25%,${t.bg2},${t.bg1} 75%)`;
@@ -349,56 +657,35 @@ function applyTheme(){
   app.style.background=`linear-gradient(160deg,${t.metal2} 0%,${t.metal1} 45%,${t.metal3} 100%)`;
   app.style.border=`2px solid ${t.rim}77`;
   app.style.boxShadow=`0 0 70px ${t.rimGlow}55,0 24px 64px rgba(0,0,0,.85),inset 0 2px 0 rgba(255,255,255,.15),inset 0 -2px 0 rgba(0,0,0,.6)`;
-
   const tp=document.getElementById("titleplate");
   tp.style.background=`linear-gradient(180deg,${t.metal2}dd,${t.metal1}cc,${t.metal3}99)`;
   tp.style.border=`1px solid ${t.rim}55`;
   tp.style.boxShadow="inset 0 2px 0 rgba(255,255,255,.12),0 4px 12px rgba(0,0,0,.5)";
-
   const mt=document.getElementById("maintitle");
-  mt.style.color=t.accentColor;
-  mt.style.textShadow=`0 0 24px ${t.rimGlow},0 2px 4px rgba(0,0,0,.8)`;
-  mt.textContent=t.title;
-
+  mt.style.color=t.accentColor;mt.style.textShadow=`0 0 24px ${t.rimGlow},0 2px 4px rgba(0,0,0,.8)`;mt.textContent=t.title;
   const st=document.getElementById("subtitle");
-  st.style.color=t.rim;
-  st.style.textShadow=`0 0 12px ${t.rimGlow}88`;
-  st.textContent=t.subtitle;
-
+  st.style.color=t.rim;st.style.textShadow=`0 0 12px ${t.rimGlow}88`;st.textContent=t.subtitle;
   const cb=document.querySelector("#coursebadge span");
   cb.style.background=`linear-gradient(135deg,${t.btnBg1}88,${t.btnBg2}88)`;
-  cb.style.border=`1px solid ${t.rim}77`;
-  cb.style.color=t.courseColor;
-  cb.style.textShadow=`0 0 10px ${t.rimGlow}99`;
-  cb.style.boxShadow=`0 0 16px ${t.rimGlow}33`;
-
+  cb.style.border=`1px solid ${t.rim}77`;cb.style.color=t.courseColor;
+  cb.style.textShadow=`0 0 10px ${t.rimGlow}99`;cb.style.boxShadow=`0 0 16px ${t.rimGlow}33`;
   const sc=document.getElementById("screen");
   sc.style.background=`radial-gradient(ellipse at 50% 35%,${t.screenBg2},${t.screenBg1} 80%)`;
-  sc.style.borderColor=t.rim+"99";
-  sc.style.boxShadow=`inset 0 0 40px rgba(0,0,0,.9),0 0 30px ${t.rimGlow}44`;
-
+  sc.style.borderColor=t.rim+"99";sc.style.boxShadow=`inset 0 0 40px rgba(0,0,0,.9),0 0 30px ${t.rimGlow}44`;
   const sb=document.getElementById("spinbtn");
   sb.style.background=`linear-gradient(135deg,${t.btnBg1},${t.btnBg2})`;
   sb.style.border=`1px solid ${t.rim}77`;
   sb.style.boxShadow=`0 6px 20px rgba(0,0,0,.6),0 0 24px ${t.rimGlow}55,inset 0 1px 0 rgba(255,255,255,.2)`;
-
   const fsbtn=document.getElementById("fsbtn");
   fsbtn.style.background=`linear-gradient(135deg,${t.metal3},${t.metal1})`;
-  fsbtn.style.border=`1px solid ${t.rim}66`;
-  fsbtn.style.borderRadius="10px";
-  fsbtn.style.boxShadow=`0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1)`;
-  fsbtn.style.color=t.rim;
-  fsbtn.style.padding="5px 10px";
-  fsbtn.style.lineHeight="0";
-
-  const screwStyle=`radial-gradient(circle at 30% 30%,#ccc,${t.screwColor} 55%,#000)`;
-  const screwShadow="inset 0 2px 3px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.9)";
+  fsbtn.style.border=`1px solid ${t.rim}66`;fsbtn.style.color=t.rim;
+  fsbtn.style.boxShadow="0 2px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.1)";
+  const sc2=`radial-gradient(circle at 30% 30%,#ccc,${t.screwColor} 55%,#000)`;
   ["s1","s2","s3","s4"].forEach(id=>{
     const s=document.getElementById(id);
-    s.style.background=screwStyle;
-    s.style.boxShadow=screwShadow;
+    s.style.background=sc2;
+    s.style.boxShadow="inset 0 2px 3px rgba(255,255,255,.4),inset 0 -1px 2px rgba(0,0,0,.8),0 2px 4px rgba(0,0,0,.9)";
   });
-
   Object.keys(THEMES).forEach(k=>{
     const btn=document.getElementById("tbtn-"+k);const tv=THEMES[k];
     btn.style.border=`2px solid ${tv.rim}${theme===k?"ff":"44"}`;
@@ -406,77 +693,28 @@ function applyTheme(){
     btn.style.color=theme===k?"#fff":tv.rim;
     btn.style.boxShadow=theme===k?`0 0 16px ${tv.rimGlow}77`:"none";
   });
-
   document.getElementById("settings").style.borderColor=t.rim+"33";
   document.getElementById("hlabel").style.color=t.rim+"88";
-  document.querySelectorAll(".htag").forEach(el=>{
-    el.style.color=t.nameColor;el.style.background=t.rim+"18";el.style.borderColor=t.rim+"33";
-  });
+  document.querySelectorAll(".htag").forEach(el=>{el.style.color=t.nameColor;el.style.background=t.rim+"18";el.style.borderColor=t.rim+"33";});
   document.getElementById("history").style.borderTopColor=t.rim+"22";
-
   if(winner){
     const wEl=document.getElementById("winner");
     wEl.style.background=`linear-gradient(90deg,${t.btnBg1},${t.btnBg2}cc,${t.btnBg1})`;
-    wEl.style.border=`1px solid ${t.rim}99`;
-    wEl.style.boxShadow=`0 0 32px ${t.rimGlow}77`;
-    wEl.style.animation="pop .4s cubic-bezier(.34,1.56,.64,1)";
+    wEl.style.border=`1px solid ${t.rim}99`;wEl.style.boxShadow=`0 0 32px ${t.rimGlow}77`;
   }
-
   document.getElementById("stars").style.display=theme==="space"?"block":"none";
+  updateNoRepeatBtn();
+  updateCounter();
+  buildAbsentList();
+  updateHistory();
   drawReel();
 }
 
-function setTheme(k){theme=k;applyTheme();restartMusic();}
-
-function spin(){
-  if(spinning)return;
-  spinning=true;winner=null;
-  document.getElementById("winner").style.display="none";
-  document.getElementById("spinbtn").disabled=true;
-  document.getElementById("spinlbl").textContent="GIRANDO…";
-  if(!document.fullscreenElement) document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
-  if(soundOn)playNote(65,0.4,"sawtooth",sfxVol*0.3);
-  const finalIdx=Math.floor(Math.random()*NAMES.length);
-  const totalSteps=48+Math.floor(Math.random()*18);
-  let step=0;
-  function go(){
-    step++;
-    const delay=Math.round(6+130*Math.pow(step/totalSteps,2.8));
-    idx=(idx+1)%NAMES.length;
-    drawReel();
-    if(soundOn&&step%2===0)playNote(220+step*3,0.05,"sine",sfxVol*0.08);
-    if(step<totalSteps){
-      timerRef=setTimeout(go,delay);
-    }else{
-      idx=finalIdx;drawReel();spinning=false;winner=NAMES[finalIdx];
-      document.getElementById("spinbtn").disabled=false;
-      document.getElementById("spinlbl").textContent="GIRAR";
-      const t=THEMES[theme];
-      const wEl=document.getElementById("winner");
-      wEl.style.display="block";
-      wEl.style.background=`linear-gradient(90deg,${t.btnBg1},${t.btnBg2}cc,${t.btnBg1})`;
-      wEl.style.border=`1px solid ${t.rim}99`;
-      wEl.style.boxShadow=`0 0 32px ${t.rimGlow}77`;
-      wEl.style.animation="none";
-      requestAnimationFrame(()=>{ wEl.style.animation="pop .4s cubic-bezier(.34,1.56,.64,1)"; });
-      revealText(winner);
-      historyArr.unshift(winner);if(historyArr.length>5)historyArr.pop();
-      updateHistory();
-      playFanfare(sfxVol);
-    }
-  }
-  go();
+function setTheme(k){
+  theme=k;applyTheme();fadeAndRestartMusic();saveState();
 }
 
-function resetReel(){
-  if(timerRef)clearTimeout(timerRef);
-  spinning=false;winner=null;idx=0;
-  document.getElementById("winner").style.display="none";
-  document.getElementById("spinbtn").disabled=false;
-  document.getElementById("spinlbl").textContent="GIRAR";
-  drawReel();
-}
-
+// --- Settings panel ---
 function toggleSettings(){
   settingsOpen=!settingsOpen;
   document.getElementById("settings").style.display=settingsOpen?"block":"none";
@@ -488,53 +726,58 @@ function toggleSettings(){
 
 function toggleSfx(){
   soundOn=!soundOn;
-  document.getElementById("sfxbtn").style.background=soundOn?"#14532d":"#2a2a2a";
-  document.getElementById("sfxbtn").style.border=`1px solid ${soundOn?"#22c55e":"#555"}`;
+  const btn=document.getElementById("sfxbtn");
+  btn.className="togglebtn"+(soundOn?" on":"");
   document.getElementById("sfxlbl").textContent=soundOn?"Efectos ON":"Efectos OFF";
   document.getElementById("sfxrow").style.display=soundOn?"flex":"none";
+  saveState();
 }
 
 function toggleMusic(){
   musicOn=!musicOn;
-  document.getElementById("musicbtn").style.background=musicOn?"#14532d":"#2a2a2a";
-  document.getElementById("musicbtn").style.border=`1px solid ${musicOn?"#22c55e":"#555"}`;
+  const btn=document.getElementById("musicbtn");
+  btn.className="togglebtn"+(musicOn?" on":"");
   document.getElementById("musiclbl").textContent=musicOn?"Música ON":"Música OFF";
   document.getElementById("musicrow").style.display=musicOn?"flex":"none";
   musicOn?restartMusic():stopMusic();
+  saveState();
 }
 
-function updateHistory(){
-  const hl=document.getElementById("histlist");hl.innerHTML="";
-  const t=THEMES[theme];
-  historyArr.forEach(h=>{
-    const s=document.createElement("span");s.className="htag";s.textContent=h;
-    s.style.color=t.nameColor;s.style.background=t.rim+"18";s.style.borderColor=t.rim+"33";
-    hl.appendChild(s);
-  });
-  document.getElementById("history").style.display=historyArr.length>0?"block":"none";
-  document.getElementById("hlabel").textContent="Últimos sorteados";
-  document.getElementById("hlabel").style.color=THEMES[theme].rim+"88";
+// --- Sync UI controls from loaded state ---
+function syncUIFromState(){
+  document.getElementById("sfxslider").value=sfxVol;
+  document.getElementById("sfxval").textContent=Math.round(sfxVol*100)+"%";
+  document.getElementById("musicslider").value=musicVol;
+  document.getElementById("musicval").textContent=Math.round(musicVol*100)+"%";
+  const sfxBtn=document.getElementById("sfxbtn");
+  sfxBtn.className="togglebtn"+(soundOn?" on":"");
+  document.getElementById("sfxlbl").textContent=soundOn?"Efectos ON":"Efectos OFF";
+  document.getElementById("sfxrow").style.display=soundOn?"flex":"none";
+  const musicBtn=document.getElementById("musicbtn");
+  musicBtn.className="togglebtn"+(musicOn?" on":"");
+  document.getElementById("musiclbl").textContent=musicOn?"Música ON":"Música OFF";
+  document.getElementById("musicrow").style.display=musicOn?"flex":"none";
 }
 
-// Fullscreen button
+// --- Fullscreen ---
 (function(){
-  const btn=document.getElementById("fsbtn");
   const expand=`<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>`;
   const compress=`<polyline points="8 3 3 3 3 8"/><polyline points="21 8 21 3 16 3"/><polyline points="3 16 3 21 8 21"/><polyline points="16 21 21 21 21 16"/>`;
-  btn.addEventListener("click",()=>{
-    if(!document.fullscreenElement){
-      document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
-    }else{
-      document.exitFullscreen&&document.exitFullscreen().catch(()=>{});
-    }
+  document.getElementById("fsbtn").addEventListener("click",()=>{
+    if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
+    else document.exitFullscreen&&document.exitFullscreen().catch(()=>{});
   });
   document.addEventListener("fullscreenchange",()=>{
-    const icon=document.getElementById("fsicon");
-    icon.innerHTML=document.fullscreenElement?compress:expand;
+    document.getElementById("fsicon").innerHTML=document.fullscreenElement?compress:expand;
   });
 })();
 
-// Background particles
+// --- Keyboard shortcut ---
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"&&!e.repeat){e.preventDefault();spin();}
+});
+
+// --- Background particles ---
 (function(){
   const cv=document.getElementById("bgcanvas");const ctx=cv.getContext("2d");const pts=[];
   function resize(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
@@ -559,7 +802,7 @@ function updateHistory(){
   loop();
 })();
 
-// Stars
+// --- Stars ---
 (function(){
   const c=document.getElementById("stars");
   for(let i=0;i<90;i++){
@@ -570,6 +813,9 @@ function updateHistory(){
   }
 })();
 
+// --- Init ---
+loadState();
+syncUIFromState();
 applyTheme();
 restartMusic();
 </script>
